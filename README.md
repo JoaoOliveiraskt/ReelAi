@@ -1,114 +1,67 @@
-# ReelAI 🎬🤖
+# ReelAI 🎬
 
-App de recomendação de filmes com IA, construído com Expo React Native, BNA UI e Google Gemini.
+ReelAI é um aplicativo móvel desenvolvido como MVP (Minimum Viable Product) para o meu Trabalho Final de Curso. O objetivo é simplificar a descoberta de filmes e séries utilizando Inteligência Artificial Generativa para recomendações personalizadas e dados em tempo real sobre disponibilidade em serviços de streaming.
 
-## ✨ Funcionalidades
+## 📱 Funcionalidades
 
-- 🎨 **UI Moderna** - Interface fluida com tema claro/escuro usando BNA UI
-- 🔍 **Busca de Filmes** - Pesquise filmes por título com dados da Streaming Availability API
-- 🤖 **Chat com IA** - Converse com o Google Gemini para receber recomendações personalizadas
-- 📱 **Bottom Sheet** - Visualize detalhes completos dos filmes (sinopse, gêneros, plataformas)
-- 💾 **Cache Local** - Sistema de cache com AsyncStorage para economizar requisições
-- 🎭 **Streaming Info** - Veja onde cada filme está disponível (Netflix, Prime Video, etc)
+*   **Recomendações via IA**: Chat integrado com o Google Gemini (modelo `gemini-2.5-flash`) que atua como um especialista em cinema, sugerindo títulos com base no gosto do usuário, humor ou pedidos específicos.
+*   **Disponibilidade de Streaming**: Integração com a Streaming Availability API para mostrar onde assistir (Netflix, Prime Video, Apple TV+, etc.) no Brasil.
+*   **Tendências em Tempo Real**: A tela inicial exibe os filmes mais populares do momento em cada plataforma, atualizados dinamicamente.
+*   **Busca Inteligente**: Pesquisa otimizada (com *debounce*) para encontrar filmes rapidamente sem sobrecarregar a rede.
+*   **Detalhes Completos**: Sinopse, elenco, ano de lançamento, gênero e links diretos para assistir.
 
-## 🚀 Instalação
+## 🛠️ Tecnologias Utilizadas
 
-```bash
-# Clone o repositório
-git clone https://github.com/seu-usuario/reelai.git
-cd reelai
+Este projeto foi construído com uma stack moderna focada em performance e experiência do desenvolvedor:
 
-# Instale as dependências
-npm install
+*   **React Native** (com Expo): Para desenvolvimento cross-platform (Android/iOS).
+*   **TypeScript**: Para tipagem estática e código mais seguro.
+*   **NativeWind** (Tailwind CSS): Para estilização rápida e responsiva.
+*   **Google Gemini API**: Motor de inteligência artificial para o chat.
+*   **Streaming Availability API** (RapidAPI): Fonte de dados sobre filmes e serviços de streaming.
+*   **Axios**: Cliente HTTP para requisições.
+*   **AsyncStorage**: Cache local para otimização de dados e economia de requisições.
 
-# Configure as variáveis de ambiente
-cp .env.example .env
-# Edite o arquivo .env com suas chaves de API
-```
+## 🚀 Como Rodar o Projeto
 
-## 🔑 Configuração de APIs
+### Pré-requisitos
+*   Node.js instalado.
+*   Conta na RapidAPI (para Streaming Availability API).
+*   Chave de API do Google Gemini.
 
-### 1. Streaming Availability API (RapidAPI)
-1. Acesse [RapidAPI](https://rapidapi.com/)
-2. Inscreva-se na [Streaming Availability API](https://rapidapi.com/movie-of-the-night-movie-of-the-night-default/api/streaming-availability)
-3. Copie sua chave de API
-4. Adicione no `.env`: `EXPO_PUBLIC_RAPID_API_KEY=sua_chave_aqui`
+### Instalação
 
-### 2. Google Gemini API
-1. Acesse [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Crie uma chave de API
-3. Adicione no `.env`: `EXPO_PUBLIC_GEMINI_API_KEY=sua_chave_aqui`
+1.  Clone o repositório:
+    ```bash
+    git clone https://github.com/seu-usuario/reelai.git
+    cd reelai
+    ```
 
-## 📱 Executar o App
+2.  Instale as dependências:
+    ```bash
+    npm install
+    ```
 
-```bash
-# Iniciar o servidor de desenvolvimento
-npm start
+3.  Configure as variáveis de ambiente:
+    Crie um arquivo `.env` na raiz do projeto e adicione suas chaves:
+    ```env
+    EXPO_PUBLIC_RAPID_API_KEY=sua_chave_rapidapi
+    EXPO_PUBLIC_GEMINI_API_KEY=sua_chave_gemini
+    ```
 
-# Executar no iOS
-npm run ios
+4.  Execute o projeto:
+    ```bash
+    npx expo start
+    ```
+    *   Use o aplicativo **Expo Go** no seu celular para escanear o QR Code.
+    *   Ou pressione `a` para rodar no emulador Android / `i` para simulador iOS.
 
-# Executar no Android
-npm run android
+## 📂 Estrutura do Projeto
 
-# Executar na Web
-npm run web
-```
-
-## 🏗️ Estrutura do Projeto
-
-```
-reelai/
-├── app/
-│   ├── (tabs)/
-│   │   ├── index.tsx          # Tela Home (busca e descoberta)
-│   │   ├── explore.tsx        # Tela Chat (IA)
-│   │   └── _layout.tsx        # Layout das tabs
-│   └── _layout.tsx            # Layout raiz
-├── components/
-│   ├── ui/                    # Componentes BNA UI
-│   ├── MovieCard.tsx          # Card de filme
-│   ├── MovieBottomSheet.tsx   # Bottom sheet com detalhes
-│   └── ChatMessage.tsx        # Mensagem do chat
-├── services/
-│   ├── api.ts                 # Integração com Streaming API
-│   └── gemini.ts              # Integração com Gemini
-└── theme/                     # Configuração de temas
-```
-
-## 🎯 Funcionalidades Principais
-
-### Tela Home
-- Busca de filmes por título
-- Exibição de filmes populares
-- Cards verticais com poster, título, ano e plataformas
-- Tap no card abre Bottom Sheet com detalhes completos
-
-### Tela Chat
-- Conversa natural com IA
-- Recomendações baseadas em preferências
-- Cards horizontais scrolláveis com filmes sugeridos
-- Tap nos cards abre detalhes no Bottom Sheet
-
-### Sistema de Cache
-- Cache de 24 horas para buscas e filmes populares
-- Reduz chamadas à API e melhora performance
-- Armazenamento local com AsyncStorage
-
-## 🛠️ Tecnologias
-
-- **Expo** - Framework React Native
-- **BNA UI** - Biblioteca de componentes
-- **NativeWind** - Estilização (Tailwind CSS)
-- **Google Gemini** - IA para recomendações
-- **Streaming Availability API** - Dados de filmes
-- **AsyncStorage** - Cache local
-- **Axios** - Requisições HTTP
-
-## 📄 Licença
-
-MIT
+*   `app/`: Rotas e telas do aplicativo (Expo Router).
+*   `components/`: Componentes reutilizáveis de UI (Cards, Inputs, etc.).
+*   `services/`: Integrações com APIs externas (`api.ts`, `gemini.ts`).
+*   `scripts/`: Scripts utilitários para verificação e testes de API.
 
 ---
-
-Desenvolvido com ❤️ usando BNA UI
+Desenvolvido por João como parte do Trabalho Final de Curso.

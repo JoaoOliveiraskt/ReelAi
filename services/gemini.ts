@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from '@google/genai';
-import { searchMovies } from './api';
+import { searchMovies, Movie } from './api';
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
@@ -32,7 +32,7 @@ const movieQueriesSchema = {
 
 export async function getMovieRecommendations(userMessage: string) {
   let retries = 3;
-  
+
   while (retries > 0) {
     try {
       const response = await ai.models.generateContent({
@@ -75,33 +75,33 @@ Retorne JSON com needsMovies, response, queries (se needsMovies=true) e requeste
         },
       });
 
-      const jsonText = response.text.trim();
+      const jsonText = (response.text || '').trim();
       const parsed = JSON.parse(jsonText);
-      
+
       if (parsed.needsMovies && Array.isArray(parsed.queries) && parsed.queries.length > 0) {
         const requestedCount = parsed.requestedCount || 3;
         const moviePromises = parsed.queries.slice(0, requestedCount * 2).map((title: string) => searchMovies(title));
         const movieResults = await Promise.all(moviePromises);
         const movies = movieResults.flatMap(result => result.slice(0, 1)).filter(m => m && m.imageUrl);
-        
+
         return {
           text: parsed.response || 'Aqui estão suas recomendações:',
           movies: movies.slice(0, requestedCount)
         };
       }
-      
+
       return {
         text: parsed.response || 'Como posso ajudar você com filmes hoje?',
         movies: []
       };
     } catch (error: any) {
       retries--;
-      
+
       if (error?.message?.includes('overloaded') && retries > 0) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         continue;
       }
-      
+
       console.error('Gemini error:', error);
       return {
         text: 'O servidor de IA está ocupado no momento. Tente novamente em alguns segundos! 😊',
@@ -109,7 +109,7 @@ Retorne JSON com needsMovies, response, queries (se needsMovies=true) e requeste
       };
     }
   }
-  
+
   return {
     text: 'O servidor de IA está ocupado no momento. Tente novamente em alguns segundos! 😊',
     movies: []

@@ -7,16 +7,25 @@ import { Star, Calendar, Clock } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - 50) / 2.1;
+const CARD_WIDTH = (width - 60) / 2; // 2 columns
 
-interface ChatMessageProps {
+interface Message {
+  id: string;
   text: string;
   isUser: boolean;
   movies?: Movie[];
+  userPrompt?: string;
+  loadMoreCount?: number;
+  conversationContext?: string;
+  isFollowUp?: boolean;
+}
+interface ChatMessageProps {
+  message: Message;
   onMoviePress?: (movie: Movie) => void;
 }
 
-export function ChatMessage({ text, isUser, movies, onMoviePress }: ChatMessageProps) {
+export function ChatMessage({ message, onMoviePress }: ChatMessageProps) {
+  const { text, isUser, movies } = message;
   const aiBg = useColor('card');
   const borderColor = useColor('border');
 
@@ -57,7 +66,7 @@ export function ChatMessage({ text, isUser, movies, onMoviePress }: ChatMessageP
                         <Text variant="caption" style={styles.metaText}>{movie.releaseYear || movie.year}</Text>
                       </View>
                     ) : null}
-                    {movie.runtime > 0 ? (
+                    {(movie.runtime && movie.runtime > 0) ? (
                       <View style={styles.metaChip}>
                         <Clock size={9} color="#fff" />
                         <Text variant="caption" style={styles.metaText}>{movie.runtime}m</Text>
@@ -65,7 +74,7 @@ export function ChatMessage({ text, isUser, movies, onMoviePress }: ChatMessageP
                     ) : null}
                   </View>
                   
-                  {movie.rating > 0 ? (
+                  {(movie.rating && movie.rating > 0) ? (
                     <View style={styles.rating}>
                       <Star size={10} color="#FFD700" fill="#FFD700" />
                       <Text variant="caption" style={styles.ratingText}>{movie.rating.toFixed(1)}</Text>

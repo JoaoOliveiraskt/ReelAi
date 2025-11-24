@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const RAPID_API_KEY = process.env.EXPO_PUBLIC_RAPID_API_KEY || '';
-const CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 horas
+const CACHE_EXPIRY = 60 * 60 * 1000; // 1 hora
 
 export interface Movie {
   id: string;
@@ -63,22 +63,22 @@ function parseStreamingOptions(streamingOptions: any): StreamingOption[] {
 
   const brOptions = streamingOptions['br'] || [];
   const usOptions = streamingOptions['us'] || [];
-  
+
   const allOptions = [...brOptions, ...usOptions];
-  
+
   // Remove duplicatas baseado no serviço e tipo
   const uniqueOptions = new Map();
-  
+
   const parsed = allOptions.map((option: any) => {
     const service = option.service || {};
     const imageSet = service.imageSet || {};
-    
+
     return {
       name: service.name || 'Desconhecido',
       link: option.link || '',
-      type: option.type === 'subscription' ? 'Streaming' : 
-            option.type === 'rent' ? 'Aluguel' : 
-            option.type === 'buy' ? 'Compra' : 
+      type: option.type === 'subscription' ? 'Streaming' :
+        option.type === 'rent' ? 'Aluguel' :
+          option.type === 'buy' ? 'Compra' :
             option.type === 'free' ? 'Grátis' : 'Disponível',
       logo: imageSet.lightThemeImage || imageSet.whiteImage || imageSet.darkThemeImage
     };
@@ -134,11 +134,17 @@ async function getMovieDetails(id: string): Promise<Movie | null> {
 }
 
 export async function searchMovies(query: string): Promise<Movie[]> {
+  console.log('🔍 searchMovies: Searching for:', query);
+
   const cacheKey = `search_${query}`;
   const cached = await getCachedData(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    console.log('🔍 searchMovies: Using cached result for:', query, 'count:', cached.length);
+    return cached;
+  }
 
   try {
+    console.log('🔍 searchMovies: API request for:', query);
     const response = await streamingApi.get('/shows/search/title', {
       params: {
         title: query,
@@ -148,55 +154,85 @@ export async function searchMovies(query: string): Promise<Movie[]> {
       }
     });
 
-    const results = response.data.slice(0, 3);
+    const results = (response.data as any[]).slice(0, 3);
+    console.log('🔍 searchMovies: API results count:', results.length);
 
     const detailedResults = await Promise.all(
-      results.map(async (r: any) => await getMovieDetails(r.id))
+      results.map(async (r: any) => {
+        const details = await getMovieDetails(r.id);
+        console.log('🔍 searchMovies: Details for', r.id, details ? 'found' : 'not found');
+        return details;
+      })
     );
 
     const movies = detailedResults.filter(Boolean) as Movie[];
+    console.log('🔍 searchMovies: Final movies count for', query, ':', movies.length);
+
     await setCachedData(cacheKey, movies);
     return movies;
   } catch (error: any) {
+    console.error('❌ searchMovies: Error for', query, ':', error);
     return [];
   }
 }
 
-export async function getPopularMovies(): Promise<Movie[]> {
+export async function getPopularMovies(forceRefresh = false): Promise<Movie[]> {
   const cacheKey = 'popular_movies';
-  const cached = await getCachedData(cacheKey);
-  if (cached) return cached;
+  if (!forceRefresh) {
+    const cached = await getCachedData(cacheKey);
+    if (cached) return cached;
+  }
 
   try {
-    const popularQueries = ['Avengers', 'Spider-Man', 'Batman'];
-    const promises = popularQueries.map(async (title) => {
-      try {
-        const response = await streamingApi.get('/shows/search/title', {
-          params: {
-            title,
-            country: 'br',
-            show_type: 'movie',
-            output_language: 'en'
-          }
-        });
-        
-        const results = response.data.slice(0, 2);
-        const detailedResults = await Promise.all(
-          results.map(async (r: any) => await getMovieDetails(r.id))
-        );
-        
-        return detailedResults.filter(Boolean) as Movie[];
-      } catch {
-        return [];
+    const response = await streamingApi.get('/shows/search/filters', {
+      params: {
+        country: 'br',
+        show_type: 'movie',
+        order_by: 'popularity_1week',
+        desc: 'true',
+        output_language: 'en'
       }
     });
 
-    const results = await Promise.all(promises);
-    const movies = results.flat().slice(0, 10);
-    
+    const trendingShows = (response.data as any).shows || [];
+    const movies = trendingShows.slice(0, 10).map(parseMovie);
+
     await setCachedData(cacheKey, movies);
     return movies;
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error fetching trending movies:', error);
+    return [];
+  }
+}
+
+// Remove this duplicate - the correct one is at the end of the file
+
+export async function getTopMoviesByService(service: string, forceRefresh = false): Promise<Movie[]> {
+  const cacheKey = `top_movies_${service}`;
+  if (!forceRefresh) {
+    const cached = await getCachedData(cacheKey);
+    if (cached) return cached;
+  }
+
+  try {
+    const response = await streamingApi.get('/shows/search/filters', {
+      params: {
+        country: 'br',
+        service: service,
+        show_type: 'movie',
+        order_by: 'popularity_1week',
+        desc: 'true',
+        output_language: 'en'
+      }
+    });
+
+    const shows = (response.data as any).shows || [];
+    const movies = shows.slice(0, 10).map(parseMovie);
+
+    await setCachedData(cacheKey, movies);
+    return movies;
+  } catch (error: any) {
+    console.error(`Error fetching top ${service} movies:`, error);
     return [];
   }
 }

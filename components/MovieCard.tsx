@@ -23,7 +23,7 @@ export function MovieCard({ movie, onPress }: MovieCardProps) {
           <View style={styles.content}>
             <View style={styles.info}>
               <Text variant='h2' style={styles.title} numberOfLines={2}>{movie.title}</Text>
-              
+
               <View style={styles.metaRow}>
                 {(movie.releaseYear || movie.year) && (
                   <View style={styles.metaChip}>
@@ -38,7 +38,7 @@ export function MovieCard({ movie, onPress }: MovieCardProps) {
                   </View>
                 )}
               </View>
-              
+
               {movie.rating > 0 && (
                 <View style={styles.ratingChip}>
                   <Star size={14} color='#FFD700' fill='#FFD700' />
@@ -46,7 +46,7 @@ export function MovieCard({ movie, onPress }: MovieCardProps) {
                 </View>
               )}
             </View>
-            
+
             <View style={styles.actionButton}>
               <ArrowRight size={24} color='#000' strokeWidth={2.5} />
             </View>
